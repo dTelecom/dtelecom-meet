@@ -6,15 +6,16 @@ Think Google Meet, but decentralized and self-hostable.
 
 ## Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FdTelecom%2Fdtelecom-meet&env=API_KEY,API_SECRET,WEBHOOK_URL&envDescription=API%20keys%20from%20cloud.dtelecom.org.%20Set%20WEBHOOK_URL%20to%20https%3A%2F%2Fyour-app.vercel.app%2Fapi%2Fwebhook%20after%20first%20deploy.&envLink=https%3A%2F%2Fcloud.dtelecom.org&project-name=dtelecom-meet&repository-name=dtelecom-meet)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FdTelecom%2Fdtelecom-meet&env=API_KEY,API_SECRET&envDescription=Get%20your%20API%20keys%20from%20cloud.dtelecom.org&envLink=https%3A%2F%2Fcloud.dtelecom.org&project-name=dtelecom-meet&repository-name=dtelecom-meet)
+
+You only need two environment variables:
 
 | Variable | Description |
 |---|---|
 | `API_KEY` | Your dTelecom API key from [cloud.dtelecom.org](https://cloud.dtelecom.org) |
 | `API_SECRET` | Your dTelecom API secret |
-| `WEBHOOK_URL` | `https://<your-vercel-app>.vercel.app/api/webhook` |
 
-> After the first deploy, copy your Vercel URL and set `WEBHOOK_URL` in the project settings, then redeploy.
+Webhook URL and Solana network settings are configured automatically.
 
 ## Features
 
@@ -59,7 +60,6 @@ Edit `.env.local`:
 ```env
 API_KEY=<your-api-key>
 API_SECRET=<your-api-secret>
-WEBHOOK_URL=https://<tunnel-url>/api/webhook
 ```
 
 ### 4. Run
@@ -72,14 +72,18 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Webhooks locally
 
-dTelecom SFU nodes can't reach `localhost`. Use [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-local-tunnel/) to create a tunnel:
+Webhooks enable live participant counts on the pre-join screen. On Vercel this works automatically. For local development, dTelecom SFU nodes can't reach `localhost`, so use [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-local-tunnel/) to create a tunnel:
 
 ```bash
 brew install cloudflared
 npm run tunnel
 ```
 
-Set the printed URL as `WEBHOOK_URL` in `.env.local` and restart the dev server.
+Set the printed URL as `WEBHOOK_URL` in `.env.local` and restart the dev server:
+
+```env
+WEBHOOK_URL=https://random-words.trycloudflare.com/api/webhook
+```
 
 ## Project Structure
 

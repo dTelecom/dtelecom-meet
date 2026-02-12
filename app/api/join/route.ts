@@ -1,6 +1,14 @@
 import { AccessToken } from "@dtelecom/server-sdk-js";
 import { NextRequest, NextResponse } from "next/server";
 
+function getWebhookUrl(): string | undefined {
+  if (process.env.WEBHOOK_URL) return process.env.WEBHOOK_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/webhook`;
+  }
+  return undefined;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { room, identity, role = "guest" } = await req.json();
@@ -18,7 +26,7 @@ export async function POST(req: NextRequest) {
       identity,
       name: identity,
       metadata,
-      webHookURL: process.env.WEBHOOK_URL,
+      webHookURL: getWebhookUrl(),
     });
     at.addGrant({
       roomJoin: true,
