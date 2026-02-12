@@ -1,8 +1,10 @@
 # dTelecom Meet
 
-Open-source video conferencing app built on [dTelecom](https://dtelecom.org) — a decentralized WebRTC platform with Solana-based node discovery.
+Open-source video conferencing app **created 100% by AI agent** using [dTelecom](https://dtelecom.org) — a decentralized WebRTC platform with Solana-based node discovery.
 
 Think Google Meet, but decentralized and self-hostable.
+
+**[Live Demo](https://dtelecom-meet-demo.vercel.app/)** | **[Documentation](https://docs.dtelecom.org)** | **[LLM Resources](https://docs.dtelecom.org/llm-resources)**
 
 ## Deploy to Vercel
 
@@ -117,6 +119,7 @@ lib/
 - [dTelecom Docs](https://docs.dtelecom.org) — full platform documentation
 - [Conference App Guide](https://docs.dtelecom.org/guides/conference-app) — step-by-step tutorial
 - [Conference App Plan](https://github.com/dTelecom/docs/blob/main/CONFERENCE_APP_PLAN.md) — architecture blueprint
+- [LLM Resources](https://docs.dtelecom.org/llm-resources) — files for AI coding assistants
 
 ## License
 
