@@ -11,6 +11,8 @@ function getWebhookUrl(): string | undefined {
 
 export async function POST(req: NextRequest) {
   try {
+    // DEMO ONLY — NOT SECURE: the client chooses its own role (no sign-in).
+    // In production, decide the role server-side (auth/session, room ownership).
     const { room, identity, role = "guest" } = await req.json();
 
     if (!room || !identity) {

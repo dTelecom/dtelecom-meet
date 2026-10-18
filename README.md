@@ -29,6 +29,8 @@ Webhook URL and Solana network settings are configured automatically.
 - **Webhook integration** — SFU nodes push `participant_joined` / `participant_left` / `room_finished` events
 - **Decentralized** — no single point of failure, SFU nodes discovered via Solana registry
 
+> **Demo only — host controls are not secured.** There is no sign-in: the client chooses its own role when joining (`/api/join`), and the kick/mute routes trust a `callerRole` sent in the request body. Anyone can act as host. Before using this in production, decide roles server-side and verify the caller's access token in privileged routes — see the [Host controls pattern](https://docs.dtelecom.org/guides/server-api#host-controls-pattern).
+
 ## Tech Stack
 
 - [Next.js](https://nextjs.org) 16 (App Router)

@@ -11,10 +11,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Verify the caller is a host.
-  // Note: In a production app you should verify this from the caller's JWT
-  // on the server side rather than trusting the client-provided role.
-  // For this example, the role was set during token creation and is trusted.
+  // DEMO ONLY — NOT SECURE: callerRole comes from the request body, so any
+  // client can claim "host". In production, verify the caller's access token
+  // with TokenVerifier and take role + room from its claims. See
+  // https://docs.dtelecom.org/guides/server-api#host-controls-pattern
   if (callerRole !== "host") {
     return NextResponse.json(
       { error: "Only hosts can mute participants" },
