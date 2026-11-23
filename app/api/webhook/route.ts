@@ -1,42 +1,24 @@
 import { WebhookReceiver } from "@dtelecom/server-sdk-js";
 import { NextRequest, NextResponse } from "next/server";
-import {
-  incrementRoom,
-  decrementRoom,
-  clearRoom,
-} from "@/lib/participant-count";
 
-const receiver = new WebhookReceiver(
-  process.env.API_KEY!,
-  process.env.API_SECRET!,
-);
+/**
+ * Example webhook receiver. Each participant's token carries this URL (see /api/join), and the
+ * node posts participant and track events here, signed with its key. The receiver checks the
+ * signature against the node registry before the event is trusted.
+ *
+ * This example only logs the events. The participant count on the join page comes from /api/room-count, which asks
+ * the nodes directly, so it is right on every serverless instance.
+ */
+const receiver = new WebhookReceiver();
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.text();
     const authToken = req.headers.get("Authorization") ?? "";
     const event = await receiver.receive(body, authToken);
-
-    const roomName = event.room?.name;
-    if (!roomName) {
-      return NextResponse.json({ ok: true });
-    }
-
-    switch (event.event) {
-      case "participant_joined":
-        incrementRoom(roomName);
-        console.log("[webhook] participant_joined in", roomName);
-        break;
-      case "participant_left":
-        decrementRoom(roomName);
-        console.log("[webhook] participant_left in", roomName);
-        break;
-      case "room_finished":
-        clearRoom(roomName);
-        console.log("[webhook] room_finished:", roomName);
-        break;
-    }
-
+    console.log(
+      `[webhook] ${event.event} room=${event.room?.name ?? "-"} participant=${event.participant?.identity ?? "-"}`,
+    );
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     console.error("[webhook] ERROR:", e);

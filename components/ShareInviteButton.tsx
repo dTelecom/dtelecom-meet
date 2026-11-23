@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { inviteLink } from "@/lib/host-session";
 
 export default function ShareInviteButton({
   roomName,
@@ -10,8 +11,7 @@ export default function ShareInviteButton({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
-    const url = `${window.location.origin}/prejoin?room=${encodeURIComponent(roomName)}&role=guest`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(inviteLink(roomName));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [roomName]);

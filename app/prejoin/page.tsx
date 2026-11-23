@@ -5,6 +5,7 @@ import type { LocalUserChoices } from "@dtelecom/components-react";
 import "@dtelecom/components-styles";
 import { useRouter, useSearchParams } from "next/navigation";
 import { joinRoom, getRoomCount } from "@/lib/api";
+import { forgetHostKey, takeHostKeyFromUrl, useHostKey } from "@/lib/host-session";
 import { useState, useEffect, Suspense } from "react";
 
 function PreJoinContent() {
@@ -12,10 +13,16 @@ function PreJoinContent() {
   const searchParams = useSearchParams();
   const room = searchParams.get("room") || "";
   const identity = searchParams.get("identity") || "";
-  const role = searchParams.get("role") || "guest";
+  // The host key from this tab or a host link's #host=; the server decides the role from it.
+  const hostKey = useHostKey(room);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [participantCount, setParticipantCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Move a host link's #host= into this tab's storage and out of the address bar.
+    if (room) takeHostKeyFromUrl(room);
+  }, [room]);
 
   useEffect(() => {
     if (!room) return;
@@ -36,7 +43,14 @@ function PreJoinContent() {
         setLoading(false);
         return;
       }
-      const { token, wsUrl } = await joinRoom(room, name, role);
+      const { token, wsUrl, role } = await joinRoom(room, name, hostKey);
+      if (hostKey && role !== "host") {
+        // The server did not accept the key: expired (24 h), or not for this room.
+        forgetHostKey(room);
+        setError("This host link is invalid or has expired. You can join as a guest.");
+        setLoading(false);
+        return;
+      }
       sessionStorage.setItem(
         `room:${room}`,
         JSON.stringify({
@@ -57,11 +71,14 @@ function PreJoinContent() {
     router.push("/");
     return null;
   }
+  if (hostKey === undefined) return null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a]">
       <div className="mb-4 text-center">
-        <h1 className="text-xl font-bold text-white">Joining: {room}</h1>
+        <h1 className="text-xl font-bold text-white">
+          {hostKey ? "Hosting" : "Joining"}: {room}
+        </h1>
         <p className="mt-1 text-sm text-neutral-400">
           Preview your camera and microphone before joining
         </p>

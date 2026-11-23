@@ -1,30 +1,27 @@
-import { getRoomService } from "@/lib/room-service";
+import { getCloud } from "@/lib/cloud";
+import { verifyHostKey } from "@/lib/host-key";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { room, identity, trackSid, callerRole } = await req.json();
+  const { room, identity, trackSid, hostKey } = await req.json();
 
-  if (!room || !identity || !trackSid || !callerRole) {
+  if (!room || !identity || !trackSid) {
     return NextResponse.json(
-      { error: "room, identity, trackSid, and callerRole are required" },
+      { error: "room, identity and trackSid are required" },
       { status: 400 },
     );
   }
 
-  // DEMO ONLY — NOT SECURE: callerRole comes from the request body, so any
-  // client can claim "host". In production, verify the caller's access token
-  // with TokenVerifier and take role + room from its claims. See
-  // https://docs.dtelecom.org/guides/server-api#host-controls-pattern
-  if (callerRole !== "host") {
+  // Only the holder of the room's host key may mute others.
+  if (!verifyHostKey(room, hostKey)) {
     return NextResponse.json(
-      { error: "Only hosts can mute participants" },
+      { error: "Only the host can mute participants" },
       { status: 403 },
     );
   }
 
   try {
-    const client = await getRoomService();
-    await client.mutePublishedTrack(room, identity, trackSid, true);
+    await getCloud().roomService().mutePublishedTrack(room, identity, trackSid, true);
     return NextResponse.json({ success: true });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Failed to mute participant";

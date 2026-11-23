@@ -1,75 +1,40 @@
 import type { JoinResponse } from "./types";
 
-export async function joinRoom(
-  room: string,
-  identity: string,
-  role: string,
-): Promise<JoinResponse> {
-  const res = await fetch("/api/join", {
+async function post<T>(url: string, body: unknown, fallbackError: string): Promise<T> {
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ room, identity, role }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to join room");
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || fallbackError);
   }
   return res.json();
 }
 
-export async function createRoom(
-  roomName: string,
-  identity: string,
-  topic?: string,
-): Promise<{ name: string; sid: string }> {
-  const res = await fetch("/api/create-room", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomName, identity, topic }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to create room");
-  }
-  return res.json();
+/** Creates a meeting: the server picks the room name and returns its host key. */
+export function createRoom(title: string): Promise<{ room: string; hostKey: string }> {
+  return post("/api/create-room", { title }, "Failed to create the meeting");
 }
 
-export async function kickParticipant(
-  room: string,
-  identity: string,
-  callerRole: string,
-): Promise<void> {
-  const res = await fetch("/api/kick", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ room, identity, callerRole }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to kick participant");
-  }
+/** Joins as host when `hostKey` is valid for the room, otherwise as a guest. */
+export function joinRoom(room: string, identity: string, hostKey?: string | null): Promise<JoinResponse> {
+  return post("/api/join", { room, identity, hostKey: hostKey ?? undefined }, "Failed to join room");
 }
 
-export async function muteParticipant(
-  room: string,
-  identity: string,
-  trackSid: string,
-  callerRole: string,
-): Promise<void> {
-  const res = await fetch("/api/mute", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ room, identity, trackSid, callerRole }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || "Failed to mute participant");
-  }
+export async function kickParticipant(room: string, identity: string, hostKey: string): Promise<void> {
+  await post("/api/kick", { room, identity, hostKey }, "Failed to remove participant");
 }
 
-export async function getRoomCount(room: string): Promise<number> {
+/** People in the room right now, or null when the count is unavailable. */
+export async function getRoomCount(room: string): Promise<number | null> {
   const res = await fetch(`/api/room-count?room=${encodeURIComponent(room)}`);
-  if (!res.ok) return 0;
+  if (!res.ok) return null;
   const data = await res.json();
-  return data.count ?? 0;
+  return typeof data.count === "number" ? data.count : null;
+}
+
+export async function muteParticipant(room: string, identity: string, trackSid: string, hostKey: string): Promise<void> {
+  await post("/api/mute", { room, identity, trackSid, hostKey }, "Failed to mute participant");
 }

@@ -1,24 +1,15 @@
-import { getRoomService } from "@/lib/room-service";
 import { NextRequest, NextResponse } from "next/server";
+import { newRoomName, signHostKey } from "@/lib/host-key";
 
+/**
+ * Creates a meeting: the server picks an unguessable room name and returns the host key for it.
+ * Rooms on dTelecom Cloud exist from the first join, so nothing is created on the network here.
+ */
 export async function POST(req: NextRequest) {
-  const { roomName, identity, topic } = await req.json();
-
-  if (!roomName || !identity) {
-    return NextResponse.json(
-      { error: "roomName and identity are required" },
-      { status: 400 },
-    );
+  const { title } = await req.json().catch(() => ({}));
+  if (typeof title !== "string" || !title.trim()) {
+    return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
-
-  const client = await getRoomService();
-
-  const room = await client.createRoom({
-    name: roomName,
-    emptyTimeout: 600,
-    maxParticipants: 50,
-    metadata: JSON.stringify({ createdBy: identity, topic: topic || "" }),
-  });
-
-  return NextResponse.json({ name: room.name, sid: room.sid });
+  const room = newRoomName(title.trim());
+  return NextResponse.json({ room, hostKey: signHostKey(room) });
 }

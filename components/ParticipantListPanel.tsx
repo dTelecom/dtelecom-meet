@@ -7,6 +7,8 @@ import {
 import { Track } from "@dtelecom/livekit-client";
 import type { ParticipantMeta } from "@/lib/types";
 import { kickParticipant, muteParticipant } from "@/lib/api";
+import { getHostKey, hostLink } from "@/lib/host-session";
+import { useState } from "react";
 
 interface Props {
   roomName: string;
@@ -21,12 +23,20 @@ export default function ParticipantListPanel({ roomName, onClose }: Props) {
   try {
     localMeta = JSON.parse(localParticipant.metadata || "{}");
   } catch {}
+  // The server put the role into this participant's token metadata.
   const isHost = localMeta.role === "host";
+  const [hostKey] = useState(() => getHostKey(roomName));
+  const [copied, setCopied] = useState(false);
+
+  function requireHostKey(): string {
+    if (!hostKey) throw new Error("Only the host can do this");
+    return hostKey;
+  }
 
   async function handleKick(identity: string) {
     if (!confirm(`Remove ${identity} from the room?`)) return;
     try {
-      await kickParticipant(roomName, identity, localMeta.role);
+      await kickParticipant(roomName, identity, requireHostKey());
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed to kick participant");
     }
@@ -34,12 +44,7 @@ export default function ParticipantListPanel({ roomName, onClose }: Props) {
 
   async function handleMute(identity: string, trackSid: string) {
     try {
-      await muteParticipant(
-        roomName,
-        identity,
-        trackSid,
-        localMeta.role,
-      );
+      await muteParticipant(roomName, identity, trackSid, requireHostKey());
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Failed to mute participant");
     }
@@ -58,6 +63,23 @@ export default function ParticipantListPanel({ roomName, onClose }: Props) {
           Close
         </button>
       </div>
+      {isHost && hostKey && (
+        <div className="border-b border-white/10 px-4 py-3">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(hostLink(roomName, hostKey));
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            className="w-full rounded-md bg-white/10 px-3 py-1.5 text-xs text-white hover:bg-white/20"
+          >
+            {copied ? "Copied" : "Copy host link"}
+          </button>
+          <p className="mt-1.5 text-[11px] text-neutral-500">
+            Opens this room as host on another device, for 24 hours. Anyone with it is a host.
+          </p>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto">
         {participants.map((p) => {
           let meta: ParticipantMeta = { role: "guest" };

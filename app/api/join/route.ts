@@ -1,5 +1,6 @@
-import { AccessToken } from "@dtelecom/server-sdk-js";
 import { NextRequest, NextResponse } from "next/server";
+import { getCloud, clientIp } from "@/lib/cloud";
+import { verifyHostKey } from "@/lib/host-key";
 
 function getWebhookUrl(): string | undefined {
   if (process.env.WEBHOOK_URL) return process.env.WEBHOOK_URL;
@@ -11,9 +12,7 @@ function getWebhookUrl(): string | undefined {
 
 export async function POST(req: NextRequest) {
   try {
-    // DEMO ONLY — NOT SECURE: the client chooses its own role (no sign-in).
-    // In production, decide the role server-side (auth/session, room ownership).
-    const { room, identity, role = "guest" } = await req.json();
+    const { room, identity, hostKey } = await req.json();
 
     if (!room || !identity) {
       return NextResponse.json(
@@ -22,30 +21,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const metadata = JSON.stringify({ role });
+    // The server decides the role: only a valid host key for this room makes a host.
+    const isHost = verifyHostKey(room, hostKey);
+    const role = isHost ? "host" : "guest";
+    const webhookUrl = getWebhookUrl();
 
-    const at = new AccessToken(process.env.API_KEY!, process.env.API_SECRET!, {
+    // Everyone can publish camera, microphone, screen and chat. The host also gets roomAdmin.
+    const { token, wsUrl } = await getCloud().createToken({
+      room,
       identity,
       name: identity,
-      metadata,
-      webHookURL: getWebhookUrl(),
-    });
-    at.addGrant({
-      roomJoin: true,
-      room,
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true,
+      metadata: JSON.stringify({ role }),
+      // A token's lifetime is a hard limit: the participant is removed when it runs out.
+      ttl: "6h",
+      clientIp: clientIp(req.headers),
+      webhookUrls: webhookUrl ? [webhookUrl] : undefined,
+      grants: { roomAdmin: isHost },
     });
 
-    const token = at.toJwt();
-
-    const clientIp = (req.headers.get("x-forwarded-for") ?? "127.0.0.1")
-      .split(",")[0]
-      .trim();
-    const wsUrl = await at.getWsUrl(clientIp);
-
-    return NextResponse.json({ token, wsUrl });
+    return NextResponse.json({ token, wsUrl, role });
   } catch (e: unknown) {
     console.error("[join] ERROR:", e);
     return NextResponse.json(
