@@ -1,5 +1,7 @@
 "use client";
 
+import ShareInviteButton from "./ShareInviteButton";
+
 import {
   useParticipants,
   useLocalParticipant,
@@ -75,6 +77,7 @@ export default function ParticipantListPanel({ roomName, onClose }: Props) {
           >
             {copied ? "Copied" : "Copy host link"}
           </button>
+          <div className="mt-2"><ShareInviteButton roomName={roomName} hostKey={hostKey} /></div>
           <p className="mt-1.5 text-[11px] text-neutral-500">
             Opens this room as host on another device, for 24 hours. Anyone with it is a host.
           </p>

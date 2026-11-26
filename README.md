@@ -5,7 +5,7 @@ with [`@dtelecom/server-sdk-js`](https://www.npmjs.com/package/@dtelecom/server-
 
 Think Google Meet, on dTelecom's network.
 
-**[Live Demo](https://dtelecom-meet-demo.vercel.app/)** | **[Documentation](https://docs.dtelecom.org)** | **[LLM Resources](https://docs.dtelecom.org/reference/llm-resources/)**
+**[Live Demo](https://dtelecom-meet.vercel.app/)** | **[Documentation](https://docs.dtelecom.org)** | **[LLM Resources](https://docs.dtelecom.org/reference/llm-resources/)**
 
 ## Deploy to Vercel
 
@@ -106,7 +106,8 @@ The browser never says "I am the host"; the server decides, without a database:
 4. **Copy host link** (in the participants panel) gives `/prejoin?room=<room>#host=<key>`: open
    it on another device to host from there. The key is after `#`, which browsers never send to a
    server; the page moves it into `sessionStorage` and clears it from the address bar. **Invite**
-   copies the guest link, without a key.
+   shows the guest QR code and **Copy link**. In the host’s participants panel, **Show host QR**
+   displays the signed host link as a QR code. Share that code only with the intended host.
 
 Server-generated room names matter: rooms exist from the first join, so if the browser could pick
 the name, anyone could get a host key for a room someone else is using.
