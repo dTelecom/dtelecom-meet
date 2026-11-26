@@ -43,7 +43,7 @@ function PreJoinContent() {
         setLoading(false);
         return;
       }
-      const { token, wsUrl, role } = await joinRoom(room, name, hostKey);
+      const { token, wsUrl, fallbackUrls, role } = await joinRoom(room, name, hostKey);
       if (hostKey && role !== "host") {
         // The server did not accept the key: expired (24 h), or not for this room.
         forgetHostKey(room);
@@ -56,6 +56,7 @@ function PreJoinContent() {
         JSON.stringify({
           token,
           wsUrl,
+          fallbackUrls,
           audioEnabled: choices.audioEnabled,
           videoEnabled: choices.videoEnabled,
         }),

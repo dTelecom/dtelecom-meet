@@ -9,6 +9,7 @@ import { Suspense, use, useState, useEffect } from "react";
 interface RoomSession {
   token: string;
   wsUrl: string;
+  fallbackUrls?: string[];
   audioEnabled: boolean;
   videoEnabled: boolean;
 }
@@ -38,6 +39,7 @@ function RoomContent({ roomName }: { roomName: string }) {
     <LiveKitRoom
       token={session.token}
       serverUrl={session.wsUrl}
+      connectOptions={session.fallbackUrls?.length ? { fallbackUrls: session.fallbackUrls } : undefined}
       connect={true}
       audio={session.audioEnabled}
       video={session.videoEnabled}

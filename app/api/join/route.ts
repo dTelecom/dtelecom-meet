@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const webhookUrl = getWebhookUrl();
 
     // Everyone can publish camera, microphone, screen and chat. The host also gets roomAdmin.
-    const { token, wsUrl } = await getCloud().createToken({
+    const { token, wsUrl, fallbackUrls } = await getCloud().createToken({
       room,
       identity,
       name: identity,
@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
       grants: { roomAdmin: isHost },
     });
 
-    return NextResponse.json({ token, wsUrl, role });
+    // Older issuers return a single URL. The room client already tries it first.
+    const alternatives = fallbackUrls && [...new Set(fallbackUrls)].filter((url) => url !== wsUrl);
+    return NextResponse.json({ token, wsUrl, fallbackUrls: alternatives, role });
   } catch (e: unknown) {
     console.error("[join] ERROR:", e);
     return NextResponse.json(
