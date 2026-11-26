@@ -7,6 +7,10 @@ Think Google Meet, on dTelecom's network.
 
 **[Live Demo](https://dtelecom-meet.vercel.app/)** | **[Documentation](https://docs.dtelecom.org)** | **[LLM Resources](https://docs.dtelecom.org/reference/llm-resources/)**
 
+## Join on iOS or Android
+
+In the web app, open **Invite**. Scan its QR code with the [React Native example app](https://github.com/dTelecom/client-sdk-react-native/tree/dtelecom-m150/example) or paste the copied invite link, enter your name and tap **Join room**. Join the same meeting as browser participants, publish your camera and microphone, and view a shared desktop screen. [React Native SDK](https://www.npmjs.com/package/@dtelecom/react-native)
+
 ## Deploy to Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FdTelecom%2Fdtelecom-meet&env=DTELECOM_API_KEY,DTELECOM_API_SECRET,DTELECOM_CLOUD_URL&envDescription=Get%20your%20API%20keys%20from%20cloud.dtelecom.org&envLink=https%3A%2F%2Fcloud.dtelecom.org&project-name=dtelecom-meet&repository-name=dtelecom-meet)
